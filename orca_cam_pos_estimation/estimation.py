@@ -7,18 +7,25 @@ from std_msgs.msg import Float64MultiArray
 from std_msgs.msg import Int32
 from geometry_msgs.msg import Twist
 from sensor_msgs.msg import CompressedImage
+from nav_msgs import Odometry
 
 from orca_msg.srv import JpegImage
 
-DEBUG
+from tf2_ros import Buffer, TransformListener
+from geometry_msgs.msg import TransformStamped
+import math
+
+CAM = False
 
 class Estimation(Node):
     def __init__(self):
         super().__init__("estimation")
         # topic pub
-        self.orca_00_pos_abs_publisher = self.create_publisher(Twist, "/orca_00/pos_abs", 10)
-        self.orca_01_pos_abs_publisher = self.create_publisher(Twist, "/orca_01/pos_abs", 10)
-        self.orca_02_pos_abs_publisher = self.create_publisher(Twist, "/orca_02/pos_abs", 10)
+        self.orca_00_pos_abs_publisher_ = self.create_publisher(Twist, "/orca_00/pos_abs", 10)
+        self.orca_01_pos_abs_publisher_ = self.create_publisher(Twist, "/orca_01/pos_abs", 10)
+        self.orca_02_pos_abs_publisher_ = self.create_publisher(Twist, "/orca_02/pos_abs", 10)
+
+        self.cam_est_flag_publisher_ = self.create_publisher(Int32, "/cam_est_flag", 10)
         
         # service
         self.cli = self.create_client(JpegImage, '/capture')
@@ -31,18 +38,82 @@ class Estimation(Node):
         self.timer = self.create_timer(timer_period, self.timer_callback)
 
         self.latest_image = CompressedImage()
+        self.orca_pos_abs = []
+
+        ############################################
+        self.tf_buffer = Buffer()
+        self.tf_listner = TransformListener(self.tf_buffer, self)
+
+        self.whale_odom_subscriber_ = self.create_subscription(Odometry, "/whale/odom",
+                                                                self.whale_callback, 10)
+        self.orca_00_odom_subscriber_ = self.create_subscription(Odometry, "/orca_00/odom",
+                                                                self.orca_00_callback, 10)
+        self.orca_01_odom_subscriber_ = self.create_subscription(Odometry, "/orca_01/odom",
+                                                                self.orca_01_callback, 10)
+        self.orca_02_odom_subscriber_ = self.create_subscription(Odometry, "/orca_02/odom",
+                                                                self.orca_02_callback, 10)
+        ############################################
+
 
     def timer_callback(self):
+        self.orca_pos_abs = []
+        
+        msg = Int32()
+        msg.data = 0
+        self.cam_est_flag_publisher_.publish(msg)
+        
         self.future = self.cli.call_async(self.req)
         self.future.add_done_callback(self.img_callback)
-    
+
     def img_callback(self, future):
         try:
             self.latest_image = future.result().image.data
         except Exception as e:
             self.get_logger().error(f"Service call failed : {e}")
         else:
+            if CAM:
+                print("cam accepted")
+                # Anthonys_code(self.latest_image)
+            ############################################
+            else:
+                try:
+                    tf_orca_00 = self.tf_buffer.lookup_transform('whale_base_link', 'orca_00_base_link', rclpy.time.Time())
+                except:
+                    self.orca_pos_abs.append([0.0, 0.0])
+                else:
+                    self.orca_pos_abs.append( [tf_orca_00.transform.translation.x, tf_orca_00.transform.translation.y] )
 
+                try:
+                    tf_orca_01 = self.tf_buffer.lookup_transform('whale_base_link', 'orca_01_base_link', rclpy.time.Time())
+                except:
+                    self.orca_pos_abs.append([0.0, 0.0])
+                else:
+                    self.orca_pos_abs.append( [tf_orca_01.transform.translation.x, tf_orca_01.transform.translation.y] )
+                
+                try:
+                    tf_orca_02 = self.tf_buffer.lookup_transform('whale_base_link', 'orca_02_base_link', rclpy.time.Time())
+                except:
+                    self.orca_pos_abs.append([0.0, 0.0])
+                else:
+                    self.orca_pos_abs.append( [tf_orca_02.transform.translation.x, tf_orca_02.transform.translation.y] )
+            #############################################
+
+            msg = Twist()
+            msg.linear.x = self.orca_pos_abs[0][0]
+            msg.linear.y = self.orca_pos_abs[0][1]
+            self.orca_00_pos_abs_publisher_.publish(msg)
+
+            msg = Twist()
+            msg.linear.x = self.orca_pos_abs[1][0]
+            msg.linear.y = self.orca_pos_abs[1][1]
+            self.orca_01_pos_abs_publisher_.publish(msg)    
+
+            msg = Twist()
+            msg.linear.x = self.orca_pos_abs[2][0]
+            msg.linear.y = self.orca_pos_abs[2][1]
+            self.orca_02_pos_abs_publisher_.publish(msg)
+        
+        
 
 
 def main(args=None):
