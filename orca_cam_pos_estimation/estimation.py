@@ -52,6 +52,10 @@ class Estimation(Node):
                                                                 self.orca_01_callback, 10)
         self.orca_02_odom_subscriber_ = self.create_subscription(Odometry, "/orca_02/odom",
                                                                 self.orca_02_callback, 10)
+        self.whale_pos = [0,0]
+        self.orca_00_pos = [0,0]
+        self.orca_01_pos = [0,0]
+        self.orca_02_pos = [0,0]
         ############################################
 
 
@@ -76,26 +80,9 @@ class Estimation(Node):
                 # Anthonys_code(self.latest_image)
             ############################################
             else:
-                try:
-                    tf_orca_00 = self.tf_buffer.lookup_transform('whale_base_link', 'orca_00_base_link', rclpy.time.Time())
-                except:
-                    self.orca_pos_abs.append([0.0, 0.0])
-                else:
-                    self.orca_pos_abs.append( [tf_orca_00.transform.translation.x, tf_orca_00.transform.translation.y] )
-
-                try:
-                    tf_orca_01 = self.tf_buffer.lookup_transform('whale_base_link', 'orca_01_base_link', rclpy.time.Time())
-                except:
-                    self.orca_pos_abs.append([0.0, 0.0])
-                else:
-                    self.orca_pos_abs.append( [tf_orca_01.transform.translation.x, tf_orca_01.transform.translation.y] )
-                
-                try:
-                    tf_orca_02 = self.tf_buffer.lookup_transform('whale_base_link', 'orca_02_base_link', rclpy.time.Time())
-                except:
-                    self.orca_pos_abs.append([0.0, 0.0])
-                else:
-                    self.orca_pos_abs.append( [tf_orca_02.transform.translation.x, tf_orca_02.transform.translation.y] )
+                self.orca_pos_abs.append( [ (self.orca_00_pos[0]-self.whale_pos[0]), (self.orca_00_pos[0]-self.whale_pos[0]) ] )
+                self.orca_pos_abs.append( [ (self.orca_01_pos[0]-self.whale_pos[0]), (self.orca_01_pos[0]-self.whale_pos[0]) ] )
+                self.orca_pos_abs.append( [ (self.orca_02_pos[0]-self.whale_pos[0]), (self.orca_02_pos[0]-self.whale_pos[0]) ] )
             #############################################
 
             msg = Twist()
@@ -112,8 +99,30 @@ class Estimation(Node):
             msg.linear.x = self.orca_pos_abs[2][0]
             msg.linear.y = self.orca_pos_abs[2][1]
             self.orca_02_pos_abs_publisher_.publish(msg)
+    
+    #############################################
+    def whale_callback(self, msg):
+        if msg.child_frame_id == "whale_base_link":
+            self.whale_pos[0] = msg.pose.pose.position.x
+            self.whale_pos[1] = msg.pose.pose.position.y
+    
+    def orca_00_callback(self, msg):
+        if msg.child_frame_id == "orca_00_base_link":
+            self.orca_00_pos[0] = msg.pose.pose.position.x
+            self.orca_00_pos[1] = msg.pose.pose.position.y
+
+    def orca_01_callback(self, msg):
+        if msg.child_frame_id == "orca_01_base_link":
+            self.orca_01_pos[0] = msg.pose.pose.position.x
+            self.orca_01_pos[1] = msg.pose.pose.position.y
+
+    def orca_02_callback(self, msg):
+        if msg.child_frame_id == "orca_02_base_link":
+            self.orca_02_pos[0] = msg.pose.pose.position.x
+            self.orca_02_pos[1] = msg.pose.pose.position.y
+    #############################################
         
-        
+
 
 
 def main(args=None):
