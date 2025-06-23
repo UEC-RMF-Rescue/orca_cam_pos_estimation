@@ -13,6 +13,7 @@
   <exec_depend>geometry_msgs</exec_depend>
   <exec_depend>std_srvc</exec_depend>
   <exec_depend>orca_msg</exec_depend>
+  <exec_depend>nav_msgs</exec_depend>
 
   <test_depend>ament_copyright</test_depend>
   <test_depend>ament_flake8</test_depend>

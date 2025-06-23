@@ -7,7 +7,7 @@ from std_msgs.msg import Float64MultiArray
 from std_msgs.msg import Int32
 from geometry_msgs.msg import Twist
 from sensor_msgs.msg import CompressedImage
-from nav_msgs import Odometry
+from nav_msgs.msg import Odometry
 
 from orca_msg.srv import JpegImage
 
@@ -86,18 +86,16 @@ class Estimation(Node):
             #############################################
 
             msg = Twist()
-            msg.linear.x = self.orca_pos_abs[0][0]
-            msg.linear.y = self.orca_pos_abs[0][1]
+            msg.linear.x = float(self.orca_pos_abs[0][0])
+            msg.linear.y = float(self.orca_pos_abs[0][1])
             self.orca_00_pos_abs_publisher_.publish(msg)
 
-            msg = Twist()
-            msg.linear.x = self.orca_pos_abs[1][0]
-            msg.linear.y = self.orca_pos_abs[1][1]
+            msg.linear.x = float(self.orca_pos_abs[1][0])
+            msg.linear.y = float(self.orca_pos_abs[1][1])
             self.orca_01_pos_abs_publisher_.publish(msg)    
 
-            msg = Twist()
-            msg.linear.x = self.orca_pos_abs[2][0]
-            msg.linear.y = self.orca_pos_abs[2][1]
+            msg.linear.x = float(self.orca_pos_abs[2][0])
+            msg.linear.y = float(self.orca_pos_abs[2][1])
             self.orca_02_pos_abs_publisher_.publish(msg)
     
     #############################################
@@ -121,8 +119,6 @@ class Estimation(Node):
             self.orca_02_pos[0] = msg.pose.pose.position.x
             self.orca_02_pos[1] = msg.pose.pose.position.y
     #############################################
-        
-
 
 
 def main(args=None):
