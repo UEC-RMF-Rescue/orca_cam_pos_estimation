@@ -6,8 +6,11 @@ from std_msgs.msg import Float64
 from std_msgs.msg import Float64MultiArray
 from std_msgs.msg import Int32
 from geometry_msgs.msg import Twist
+from sensor_msgs.msg import CompressedImage
 
 from orca_msg.srv import JpegImage
+
+DEBUG
 
 class Estimation(Node):
     def __init__(self):
@@ -27,21 +30,19 @@ class Estimation(Node):
         timer_period = 0.8
         self.timer = self.create_timer(timer_period, self.timer_callback)
 
-        self.jpeg_bytes = None
+        self.latest_image = CompressedImage()
 
     def timer_callback(self):
         self.future = self.cli.call_async(self.req)
-        rclpy.spin_until_future_complete(self, self.future)
-        if self.future.result() is not None:
-            self.jpeg_bytes =  self.future.result().jpeg_data.data
-
-            if self.jpeg_bytes is not None:
-                with open('./pict/parent_cam.jpg', 'wb') as f:
-                    f.write(bytearray(self.jpeg_bytes))
-                    self.get_logger().info('saved jpeg image')
+        self.future.add_done_callback(self.img_callback)
+    
+    def img_callback(self, future):
+        try:
+            self.latest_image = future.result().image.data
+        except Exception as e:
+            self.get_logger().error(f"Service call failed : {e}")
         else:
-            self.get_logger().error('failed to call service')
-            return None
+
 
 
 def main(args=None):
