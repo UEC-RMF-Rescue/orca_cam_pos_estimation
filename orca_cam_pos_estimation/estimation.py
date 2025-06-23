@@ -80,9 +80,9 @@ class Estimation(Node):
                 # Anthonys_code(self.latest_image)
             ############################################
             else:
-                self.orca_pos_abs.append( [ (self.orca_00_pos[0]-self.whale_pos[0]), (self.orca_00_pos[0]-self.whale_pos[0]) ] )
-                self.orca_pos_abs.append( [ (self.orca_01_pos[0]-self.whale_pos[0]), (self.orca_01_pos[0]-self.whale_pos[0]) ] )
-                self.orca_pos_abs.append( [ (self.orca_02_pos[0]-self.whale_pos[0]), (self.orca_02_pos[0]-self.whale_pos[0]) ] )
+                self.orca_pos_abs.append( [ (self.orca_00_pos[0]-self.whale_pos[0]), (self.orca_00_pos[1]-self.whale_pos[1]) ] )
+                self.orca_pos_abs.append( [ (self.orca_01_pos[0]-self.whale_pos[0]), (self.orca_01_pos[1]-self.whale_pos[1]) ] )
+                self.orca_pos_abs.append( [ (self.orca_02_pos[0]-self.whale_pos[0]), (self.orca_02_pos[1]-self.whale_pos[1]) ] )
             #############################################
 
             msg = Twist()
