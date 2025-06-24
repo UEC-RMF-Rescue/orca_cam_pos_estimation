@@ -91,12 +91,7 @@ def detect_aruco_filtered_real_positions(image_bytes: bytes) -> list:
     gray = cv2.cvtColor(frame_undistorted, cv2.COLOR_BGR2GRAY)
 
     corners, ids, _ = detector.detectMarkers(gray)
-<<<<<<< HEAD
     coords = {7: (0.0, 0.0), 8: (0.0, 0.0), 27: (0.0, 0.0)}
-=======
-    target_ids = [7, 8, 27]
-    results = {tid: (0.0, 0.0) for tid in target_ids}
->>>>>>> Anthony
 
     if ids is not None:
         for i in range(len(ids)):
@@ -108,7 +103,6 @@ def detect_aruco_filtered_real_positions(image_bytes: bytes) -> list:
                 x_filt, y_filt = kalman_filters[marker_id].update(x, y)
                 results[marker_id] = (x_filt, y_filt)
 
-<<<<<<< HEAD
             center_2d = corners[i][0].mean(axis=0).astype(np.float32).reshape(-1, 1, 2)
             real = cv2.perspectiveTransform(center_2d, M)
             x, y = real[0][0]
@@ -117,7 +111,3 @@ def detect_aruco_filtered_real_positions(image_bytes: bytes) -> list:
             coords[marker_id] = (x_filt, y_filt)
 
     return [coords[marker_id[0][0]], coords[marker_id[1][0]], coords[marker_id[2][0]]]
-=======
-    # ID順（7, 8, 27）でリスト化
-    return [results[tid] for tid in target_ids]
->>>>>>> Anthony
