@@ -90,8 +90,7 @@ def detect_aruco_filtered_real_positions(image_bytes: bytes) -> dict:
     gray = cv2.cvtColor(frame_undistorted, cv2.COLOR_BGR2GRAY)
 
     corners, ids, _ = detector.detectMarkers(gray)
-    now_time = datetime.datetime()
-    coords = {7: (0.0, 0.0,now_time), 8: (0.0, 0.0, now_time), 27: (0.0, 0.0, now_time)}
+    coords = {7: (0.0, 0.0), 8: (0.0, 0.0), 27: (0.0, 0.0)}
 
     if ids is not None:
         for i in range(len(ids)):
@@ -99,13 +98,11 @@ def detect_aruco_filtered_real_positions(image_bytes: bytes) -> dict:
             if marker_id not in coords:
                 continue
 
-            now_time = datetime.datetime()
-
             center_2d = corners[i][0].mean(axis=0).astype(np.float32).reshape(-1, 1, 2)
             real = cv2.perspectiveTransform(center_2d, M)
             x, y = real[0][0]
             # Kalmanで平滑化
             x_filt, y_filt = kalman_filters[marker_id].update(x, y)
-            coords[marker_id] = (x_filt, y_filt,now_time)
+            coords[marker_id] = (x_filt, y_filt)
 
-    return coords
+    return [coords[marker_id[0][0]], coords[marker_id[1][0]], coords[marker_id[2][0]]]

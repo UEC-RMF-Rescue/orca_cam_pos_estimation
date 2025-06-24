@@ -15,6 +15,8 @@ from tf2_ros import Buffer, TransformListener
 from geometry_msgs.msg import TransformStamped
 import math
 
+from orca_cam_pos_estimation import ar_marker_binary
+
 CAM = True
 
 class Estimation(Node):
@@ -76,8 +78,8 @@ class Estimation(Node):
             self.get_logger().error(f"Service call failed : {e}")
         else:
             if CAM:
-                print("cam accepted")
-                # Anthonys_code(self.latest_image)
+                self.orca_pos_abs = ar_marker_binary.detect_aruco_filtered_real_positions(self.latest_image)
+                print(self.orca_pos_abs)
             ############################################
             else:
                 self.orca_pos_abs.append( [ (self.orca_00_pos[0]-self.whale_pos[0]), (self.orca_00_pos[1]-self.whale_pos[1]) ] )
