@@ -15,7 +15,7 @@ from tf2_ros import Buffer, TransformListener
 from geometry_msgs.msg import TransformStamped
 import math
 
-CAM = False
+CAM = True
 
 class Estimation(Node):
     def __init__(self):
