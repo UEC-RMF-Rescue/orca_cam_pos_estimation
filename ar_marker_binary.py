@@ -45,10 +45,10 @@ class SimpleKalman:
 kalman_filters = defaultdict(SimpleKalman)
 
 # ===== メイン関数 =====
-def detect_aruco_and_get_real_positions(image_bytes: bytes, target_ids=[7, 8, 29]) -> dict:
+def detect_aruco_and_get_real_positions(image_bytes: bytes, target_ids=[7, 8, 29]) -> list:
     """
     ArUcoマーカーの補正済み位置を射影変換し、Kalmanフィルターで平滑化して返す。
-    出力: {id: (X, Y)} ← 実世界座標（mm）。未検出は (0.0, 0.0)
+    出力: [(X, Y), ...] ← 昇順 ID に対応した実世界座標（mm）。未検出は (0.0, 0.0)
     スケーリングは x, y 共に 73/84 を適用。
     """
     nparr = np.frombuffer(image_bytes, np.uint8)
@@ -65,19 +65,14 @@ def detect_aruco_and_get_real_positions(image_bytes: bytes, target_ids=[7, 8, 29
     results = {tid: (0.0, 0.0) for tid in target_ids}
 
     if ids is not None:
-        aruco.drawDetectedMarkers(undistorted, corners, ids)
         for i in range(len(ids)):
             marker_id = ids[i][0]
             if marker_id in results:
-                # マーカー中心座標の計算と透視変換
                 center_2d = corners[i][0].mean(axis=0).astype(np.float32).reshape(-1, 1, 2)
                 real = cv2.perspectiveTransform(center_2d, M)
                 x, y = real[0][0]
-
-                # Kalmanフィルターで平滑化
                 x_filt, y_filt = kalman_filters[marker_id].update(x, y)
-
-                # スケーリングして登録（変更しないとの指定）
                 results[marker_id] = (73 * x_filt / 84, 73 * y_filt / 84)
 
-    return results
+    # ID昇順で位置をリストとして返す
+    return [results[tid] for tid in sorted(target_ids)]
