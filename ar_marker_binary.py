@@ -72,7 +72,7 @@ def detect_aruco_and_get_real_positions(image_bytes: bytes, target_ids=[7, 8, 29
                 real = cv2.perspectiveTransform(center_2d, M)
                 x, y = real[0][0]
                 x_filt, y_filt = kalman_filters[marker_id].update(x, y)
-                results[marker_id] = (73 * x_filt / 84, 73 * y_filt / 84)
+                results[marker_id] = ((73 * x_filt / 84)/1000, (73 * y_filt / 84)/1000)
 
     # ID昇順で位置をリストとして返す
     return [results[tid] for tid in sorted(target_ids)]
