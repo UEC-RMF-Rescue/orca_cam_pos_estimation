@@ -78,7 +78,7 @@ class Estimation(Node):
             self.get_logger().error(f"Service call failed : {e}")
         else:
             if CAM:
-                self.orca_pos_abs = ar_marker_binary.detect_aruco_filtered_real_positions(self.latest_image)
+                self.orca_pos_abs = ar_marker_binary.detect_aruco_and_get_real_positions(self.latest_image)
                 print(self.orca_pos_abs)
             ############################################
             else:
