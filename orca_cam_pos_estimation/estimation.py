@@ -18,6 +18,7 @@ import math
 from orca_cam_pos_estimation import ar_marker_binary
 
 CAM = True
+SAVE = True
 
 class Estimation(Node):
     def __init__(self):
@@ -74,6 +75,9 @@ class Estimation(Node):
     def img_callback(self, future):
         try:
             self.latest_image = future.result().image.data
+            if SAVE:
+                with open('immg_cb.jpg', 'wb') as f:
+                    f.write(self.latest_image)
         except Exception as e:
             self.get_logger().error(f"Service call failed : {e}")
         else:
