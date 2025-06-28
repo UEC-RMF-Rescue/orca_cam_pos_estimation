@@ -32,10 +32,11 @@ class Estimation(Node):
         self.cam_est_flag_publisher_ = self.create_publisher(Int32, "/cam_est_flag", 10)
         
         # service
-        # self.cli = self.create_client(JpegImage, '/capture')
-        # while not self.cli.wait_for_service(timeout_sec=1.0):
-        #     self.get_logger().info('service not available, waiting again...')
-        # self.req = JpegImage.Request()
+        self.cli = self.create_client(JpegImage, '/capture')
+        if not CAM:
+            while not self.cli.wait_for_service(timeout_sec=1.0):
+                self.get_logger().info('service not available, waiting again...')
+            self.req = JpegImage.Request()
 
         # timer
         timer_period = 7
