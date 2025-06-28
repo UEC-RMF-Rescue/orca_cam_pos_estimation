@@ -32,10 +32,10 @@ class Estimation(Node):
         self.cam_est_flag_publisher_ = self.create_publisher(Int32, "/cam_est_flag", 10)
         
         # service
-        self.cli = self.create_client(JpegImage, '/capture')
-        while not self.cli.wait_for_service(timeout_sec=1.0):
-            self.get_logger().info('service not available, waiting again...')
-        self.req = JpegImage.Request()
+        # self.cli = self.create_client(JpegImage, '/capture')
+        # while not self.cli.wait_for_service(timeout_sec=1.0):
+        #     self.get_logger().info('service not available, waiting again...')
+        # self.req = JpegImage.Request()
 
         # timer
         timer_period = 7
@@ -68,9 +68,19 @@ class Estimation(Node):
         msg = Int32()
         msg.data = 0
         self.cam_est_flag_publisher_.publish(msg)
+        remote_path = "/home/rmfrescue/ros2_ws/src/whale_ctl/img/img.jpg"
+        local_path = "/home/hibiki/Robomech_Rescue/ORCA/src/orca_cam_pos_estimation/img/img.jpg"
+        remote_ip = "192.168.1.113"
+        remote_user = "rmfrescue"
+        try:
+            subprocess.run([
+                "scp", "-i", "~/.ssh/id_rsa", f"{remote_user}@{remote_ip}:{remote_path}", local_path
+            ], check=True)
+        except:
+            return
         
-        self.future = self.cli.call_async(self.req)
-        self.future.add_done_callback(self.img_callback)
+        # self.future = self.cli.call_async(self.req)
+        # self.future.add_done_callback(self.img_callback)
 
     def img_callback(self, future):
         try:
