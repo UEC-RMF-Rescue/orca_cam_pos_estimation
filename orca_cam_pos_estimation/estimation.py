@@ -16,6 +16,7 @@ from geometry_msgs.msg import TransformStamped
 import math
 
 from orca_cam_pos_estimation import ar_marker_binary
+import subprocess
 
 CAM = True
 SAVE = True
@@ -37,7 +38,7 @@ class Estimation(Node):
         self.req = JpegImage.Request()
 
         # timer
-        timer_period = 0.8
+        timer_period = 7
         self.timer = self.create_timer(timer_period, self.timer_callback)
 
         self.latest_image = CompressedImage()
@@ -61,7 +62,6 @@ class Estimation(Node):
         self.orca_02_pos = [0,0]
         ############################################
 
-
     def timer_callback(self):
         self.orca_pos_abs = []
         
@@ -76,14 +76,23 @@ class Estimation(Node):
         try:
             self.latest_image = future.result().image.data
             if SAVE:
-                with open('immg_cb.jpg', 'wb') as f:
+                with open('img_cb.jpg', 'wb') as f:
                     f.write(self.latest_image)
         except Exception as e:
             self.get_logger().error(f"Service call failed : {e}")
         else:
             if CAM:
-                self.orca_pos_abs = ar_marker_binary.detect_aruco_and_get_real_positions(self.latest_image)
-                print(self.orca_pos_abs)
+                remote_path = "/home/rmfrescue/ros2_ws/src/whale_ctl/img/img.jpg"
+                local_path = "/home/hibiki/Robomech_Rescue/ORCA/src/orca_cam_pos_estimation/img/img.jpg"
+                remote_ip = "192.168.1.113"
+                remote_user = "rmfrescue"
+                subprocess.run([
+                    "scp", "-i", "~/.ssh/id_rsa", f"{remote_user}@{remote_ip}:{remote_path}", local_path
+                ], check=True)
+
+                self.get_logger().info("successfly got img")
+                # self.orca_pos_abs = ar_marker_binary.detect_aruco_and_get_real_positions(self.latest_image)
+                # print(self.orca_pos_abs)
             ############################################
             else:
                 self.orca_pos_abs.append( [ (self.orca_00_pos[0]-self.whale_pos[0]), (self.orca_00_pos[1]-self.whale_pos[1]) ] )
@@ -91,18 +100,18 @@ class Estimation(Node):
                 self.orca_pos_abs.append( [ (self.orca_02_pos[0]-self.whale_pos[0]), (self.orca_02_pos[1]-self.whale_pos[1]) ] )
             #############################################
 
-            msg = Twist()
-            msg.linear.x = float(self.orca_pos_abs[0][0])
-            msg.linear.y = float(self.orca_pos_abs[0][1])
-            self.orca_00_pos_abs_publisher_.publish(msg)
+            # msg = Twist()
+            # msg.linear.x = float(self.orca_pos_abs[0][0])
+            # msg.linear.y = float(self.orca_pos_abs[0][1])
+            # self.orca_00_pos_abs_publisher_.publish(msg)
 
-            msg.linear.x = float(self.orca_pos_abs[1][0])
-            msg.linear.y = float(self.orca_pos_abs[1][1])
-            self.orca_01_pos_abs_publisher_.publish(msg)    
+            # msg.linear.x = float(self.orca_pos_abs[1][0])
+            # msg.linear.y = float(self.orca_pos_abs[1][1])
+            # self.orca_01_pos_abs_publisher_.publish(msg)    
 
-            msg.linear.x = float(self.orca_pos_abs[2][0])
-            msg.linear.y = float(self.orca_pos_abs[2][1])
-            self.orca_02_pos_abs_publisher_.publish(msg)
+            # msg.linear.x = float(self.orca_pos_abs[2][0])
+            # msg.linear.y = float(self.orca_pos_abs[2][1])
+            # self.orca_02_pos_abs_publisher_.publish(msg)
     
     #############################################
     def whale_callback(self, msg):
@@ -125,7 +134,6 @@ class Estimation(Node):
             self.orca_02_pos[0] = msg.pose.pose.position.x
             self.orca_02_pos[1] = msg.pose.pose.position.y
     #############################################
-
 
 def main(args=None):
     rclpy.init(args=args)

@@ -52,7 +52,10 @@ def detect_aruco_and_get_real_positions(image_bytes: bytes, target_ids=[7, 8, 29
     スケーリングは x, y 共に 73/84 を適用。
     """
     nparr = np.frombuffer(image_bytes, np.uint8)
-    img = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
+    try:
+        img = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
+    except:
+        raise ValueError("missing decoder")
     if img is None:
         raise ValueError("画像読み込みに失敗しました")
 
